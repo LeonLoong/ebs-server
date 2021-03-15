@@ -50,7 +50,7 @@ See also the list of [contributors](https://github.com/tuandm/laravue/contributo
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
 
 ## Acknowledgements
-* [Laravue]((https://github.com/tuandm/laravue) A beautiful dashboard combination of Laravel, Vue.js and the UI Toolkit Element.
+* [Laravue](https://github.com/tuandm/laravue) A beautiful dashboard combination of Laravel, Vue.js and the UI Toolkit Element.
 * [vue-element-admin](https://panjiachen.github.io/vue-element-admin/#/) A magical vue admin which insprited Laravue project.
 * [tui.editor](https://github.com/nhnent/tui.editor) - Markdown WYSIWYG Editor.
 * [Echarts](http://echarts.apache.org/) - A powerful, interactive charting and visualization library for browser.
