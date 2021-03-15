@@ -12,4 +12,8 @@ class Car extends Model
         'car_manufacturer_id', 'model'
     ];
 
+    public function car_manufacturers()
+    {
+        return $this->hasMany(CarManufacturer::class, 'id', 'car_manufacturer_id');
+    }
 }

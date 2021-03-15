@@ -64,11 +64,34 @@ export function storeCar(resource) {
   });
 }
 
+export function updateCar(carID, resource) {
+  return request({
+    url: '/ebs/cars/' + carID,
+    method: 'put',
+    data: resource,
+  });
+}
+
+export function destroyCar(carID) {
+  return request({
+    url: '/ebs/cars/' + carID,
+    method: 'delete',
+  });
+}
+
 export function getCarManufacturers(query) {
   return request({
     url: '/ebs/car-manufacturers/',
     method: 'get',
     params: query,
+  });
+}
+
+export function storeCarManufacturer(resource) {
+  return request({
+    url: '/ebs/car-manufacturers/',
+    method: 'post',
+    data: resource,
   });
 }
 

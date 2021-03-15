@@ -110,6 +110,7 @@ export default {
     model: 'Model',
     modelReference: 'Model Reference',
     manufacturer: 'Manufacturer',
+    logo: 'Logo',
     type: 'Type',
     series: 'Series',
     price: 'Price',

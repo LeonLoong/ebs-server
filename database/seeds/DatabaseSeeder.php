@@ -60,5 +60,6 @@ class DatabaseSeeder extends Seeder
         $this->call(CarManufacturerSeeder::class);
         $this->call(ClientSeeder::class);
         $this->call(PaymentMethodSeeder::class);
+        $this->call(EbsPermissionSeeder::class);
     }
 }

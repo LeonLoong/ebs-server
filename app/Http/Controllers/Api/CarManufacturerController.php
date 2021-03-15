@@ -24,7 +24,7 @@ class CarManufacturerController extends Controller
         $keyword = Arr::get($searchParams, 'keyword', '');
 
         if (!empty($keyword)) {
-            $carManufacturerQuery->where('name', 'LIKE', '%' . $keyword . '%');
+            $carManufacturerQuery->where('manufacturer', 'LIKE', '%' . $keyword . '%');
         }
         
         return CarManufacturerResource::collection($carManufacturerQuery->paginate($limit));
@@ -48,7 +48,12 @@ class CarManufacturerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $params = $request->all();
+        $car = CarManufacturer::create([
+            'manufacturer' => $params['manufacturer'],
+        ]);
+
+        return new CarManufacturerResource($car);
     }
 
     /**

@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input v-model="query.keyword" :placeholder="$t('table.keyword')" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+      <el-input v-model="query.keyword" :placeholder="$t('table.keyword')" style="width: 200px;" class="filter-item" @keyup.enter.native="handleSearch" />
       <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleSearch">
         {{ $t('table.search') }}
       </el-button>
@@ -25,14 +25,14 @@
         <template slot-scope="scope">
           <el-button
             v-if="scope.row.name !== 'admin'"
-            v-permission="['update battery']"
+            v-permission="['update ebs']"
             size="small"
             type="primary"
             icon="el-icon-edit"
             @click="handleEdit(scope.row.id);"
           />
           <el-button
-            v-permission="['delete battery']"
+            v-permission="['delete ebs']"
             size="small"
             type="danger"
             icon="el-icon-delete"
@@ -42,33 +42,68 @@
       </el-table-column>
     </el-table>
 
+    <el-dialog :visible.sync="addDialogVisible" :title="'Add New Car Manufacturer'" :close-on-click-modal="false">
+      <div v-loading="addDialogLoading">
+        <el-form ref="addCarManufacturerForm" :rules="rules" :model="new_car" label-position="left" label-width="150px" style="max-width: 500px;">
+          <el-form-item :label="$t('ebs.manufacturer')" prop="manufacturer">
+            <el-input v-model="new_car.manufacturer" />
+          </el-form-item>
+          <el-form-item :label="$t('ebs.logo')" prop="logo">
+            <div class="editor-container">
+              <dropzone id="myVueDropzone" url="https://httpbin.org/post" @dropzone-removedFile="dropzoneR" @dropzone-success="dropzoneS" />
+            </div>
+          </el-form-item>
+        </el-form>
+
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="addDialogVisible = false">
+            {{ $t('table.cancel') }}
+          </el-button>
+          <el-button type="primary" @click="createCarManufacturer()">
+            {{ $t('table.confirm') }}
+          </el-button>
+        </div>
+      </div>
+    </el-dialog>
+
     <pagination v-show="total>0" :total="total" :page.sync="query.page" :limit.sync="query.limit" @pagination="getData" />
   </div>
 </template>
 
 <script>
 import Pagination from '@/components/Pagination';
+import Dropzone from '@/components/Dropzone';
 import permission from '@/directive/permission';
 import waves from '@/directive/waves';
-import { getCarManufacturers } from '@/api/ebs';
+import { getCarManufacturers, storeCarManufacturer } from '@/api/ebs';
 
 export default {
   name: 'Project',
-  components: { Pagination },
+  components: { Pagination, Dropzone },
   directives: { permission, waves },
 
   data() {
     return {
       query: {
         page: 1,
-        limit: 15,
+        limit: 50,
       },
       rules: {
+        manufacturer: [{ required: true, message: 'Manufacturer is required', trigger: 'blur' }],
+      },
+      new_car: {
+        manufacturer: '',
       },
       downloading: false,
+      addDialogVisible: false,
+      addDialogLoading: false,
       loading: true,
       carManufacturers: [],
       total: 0,
+      dropzoneOptions: {
+        url: 'https://httpbin.org/post',
+        autoProcessQueue: false,
+      },
     };
   },
   created() {
@@ -97,26 +132,74 @@ export default {
     },
 
     handleAdd() {
-      this.resetNewBattery();
+      this.resetNewCarManufacturer();
       this.addDialogVisible = true;
       this.$nextTick(() => {
-        this.$refs['addBatteryForm'].clearValidate();
+        this.$refs['addCarManufacturerForm'].clearValidate();
       });
+    },
+
+    createCarManufacturer() {
+      this.$refs['addCarManufacturerForm'].validate((valid) => {
+        if (valid) {
+          this.addDialogLoading = true;
+          this.new_car.manufacturer = this.new_car.manufacturer;
+          console.log(this.new_car);
+
+          storeCarManufacturer(this.new_car)
+            .then(response => {
+              this.$message({
+                message: 'New car manufacturer ' + this.new_car.manufacturer + ' has been created successfully.',
+                type: 'success',
+                duration: 5 * 1000,
+              });
+              this.resetNewCarManufacturer();
+              this.addDialogVisible = false;
+              this.handleSearch();
+            })
+            .catch(error => {
+              console.log(error);
+            })
+            .finally(() => {
+              this.addDialogLoading = false;
+            });
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+
+    resetNewCarManufacturer() {
+      this.new_car = {
+        manufacturer: '',
+      };
     },
 
     handleExport() {
       this.downloading = true;
       import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['id', 'name', 'departments', 'start_at', 'end_at'];
-        const filterVal = ['index', 'name', 'departments', 'start_at', 'end_at'];
-        const data = this.formatJson(filterVal, this.projects);
+        const tHeader = ['id', 'manufacturer'];
+        const filterVal = ['index', 'manufacturer'];
+        const data = this.formatJson(filterVal, this.carManufacturers);
         excel.export_json_to_excel({
           header: tHeader,
           data,
-          filename: 'projects',
+          filename: 'car_manufacturers',
         });
         this.downloading = false;
       });
+    },
+
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v => filterVal.map(j => v[j]));
+    },
+
+    dropzoneS(file) {
+      this.$message({ message: 'Upload success', type: 'success' });
+    },
+    dropzoneR(file) {
+      this.$message({ message: 'Delete success', type: 'success' });
     },
   },
 };
