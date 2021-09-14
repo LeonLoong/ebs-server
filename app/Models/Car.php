@@ -9,11 +9,11 @@ class Car extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'car_manufacturer_id', 'model'
+        'manufacturer_id', 'model', 'description', 'image', 'image_size'
     ];
 
     public function car_manufacturers()
     {
-        return $this->hasMany(CarManufacturer::class, 'id', 'car_manufacturer_id');
+        return $this->hasMany(CarManufacturer::class, 'id', 'manufacturer_id');
     }
 }

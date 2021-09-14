@@ -9,6 +9,6 @@ class CarManufacturer extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'manufacturer'
+        'manufacturer', 'image', 'image_size'
     ];
 }

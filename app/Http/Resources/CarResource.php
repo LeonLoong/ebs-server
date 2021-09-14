@@ -15,10 +15,21 @@ class CarResource extends JsonResource
      */
     public function toArray($request)
     {
+        $carManufacturer = CarManufacturer::where('id', '=', $this->manufacturer_id)->first();
+        if ($carManufacturer === null) {
+            $carManufacturer = null;
+         } else {
+            $carManufacturer = $carManufacturer->manufacturer;
+         };
+         
         return [
             'id' => $this->id,
-            'manufacturer' => CarManufacturer::findOrFail($this->car_manufacturer_id)->manufacturer,
+            'manufacturer' => $carManufacturer,
+            'manufacturer_id' => $this->manufacturer_id,
             'model' => $this->model,
+            'description' => $this->description,
+            'image' => $this->image,
+            'image_size' => $this->image_size,
         ];
     }
 }

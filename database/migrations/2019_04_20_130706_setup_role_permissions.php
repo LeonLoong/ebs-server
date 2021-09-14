@@ -34,14 +34,14 @@ class SetupRolePermissions extends Migration
         $adminRole->givePermissionTo(Acl::permissions());
         $managerRole->givePermissionTo(Acl::permissions([Acl::PERMISSION_PERMISSION_MANAGE]));
         $editorRole->givePermissionTo(Acl::menuPermissions());
-        $editorRole->givePermissionTo(Acl::PERMISSION_ARTICLE_MANAGE);
+        // $editorRole->givePermissionTo(Acl::PERMISSION_ARTICLE_MANAGE);
         $userRole->givePermissionTo([
-            Acl::PERMISSION_VIEW_MENU_ELEMENT_UI,
-            Acl::PERMISSION_VIEW_MENU_PERMISSION,
+            // Acl::PERMISSION_VIEW_MENU_ELEMENT_UI,
+            // Acl::PERMISSION_VIEW_MENU_PERMISSION,
         ]);
         $visitorRole->givePermissionTo([
-            Acl::PERMISSION_VIEW_MENU_ELEMENT_UI,
-            Acl::PERMISSION_VIEW_MENU_PERMISSION,
+            // Acl::PERMISSION_VIEW_MENU_ELEMENT_UI,
+            // Acl::PERMISSION_VIEW_MENU_PERMISSION,
         ]);
 
         foreach (Acl::roles() as $role) {

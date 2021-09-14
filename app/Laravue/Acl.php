@@ -24,23 +24,16 @@ final class Acl
     const ROLE_USER = 'user';
     const ROLE_VISITOR = 'visitor';
 
-    const PERMISSION_VIEW_MENU_ELEMENT_UI = 'view menu element ui';
-    const PERMISSION_VIEW_MENU_PERMISSION = 'view menu permission';
-    const PERMISSION_VIEW_MENU_COMPONENTS = 'view menu components';
-    const PERMISSION_VIEW_MENU_CHARTS = 'view menu charts';
-    const PERMISSION_VIEW_MENU_NESTED_ROUTES = 'view menu nested routes';
-    const PERMISSION_VIEW_MENU_TABLE = 'view menu table';
     const PERMISSION_VIEW_MENU_ADMINISTRATOR = 'view menu administrator';
-    const PERMISSION_VIEW_MENU_THEME = 'view menu theme';
-    const PERMISSION_VIEW_MENU_CLIPBOARD = 'view menu clipboard';
-    const PERMISSION_VIEW_MENU_EXCEL = 'view menu excel';
-    const PERMISSION_VIEW_MENU_ZIP = 'view menu zip';
-    const PERMISSION_VIEW_MENU_PDF = 'view menu pdf';
-    const PERMISSION_VIEW_MENU_I18N = 'view menu i18n';
-
+    
+    // const PERMISSION_BATTERY_MANAGE = 'manage battery';
     const PERMISSION_USER_MANAGE = 'manage user';
-    const PERMISSION_ARTICLE_MANAGE = 'manage article';
     const PERMISSION_PERMISSION_MANAGE = 'manage permission';
+
+    const PERMISSION_CREATE_EBS = 'create ebs';
+    const PERMISSION_READ_EBS = 'read ebs';
+    const PERMISSION_UPDATE_EBS = 'update ebs';
+    const PERMISSION_DELETE_EBS = 'delete ebs';
 
     /**
      * @param array $exclusives Exclude some permissions from the list

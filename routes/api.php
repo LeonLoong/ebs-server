@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
 Route::namespace('Api')->group(function() {
     Route::post('auth/login', 'AuthController@login');
     Route::group(['middleware' => 'auth:sanctum'], function () {
@@ -40,7 +39,8 @@ Route::namespace('Api')->group(function() {
         Route::apiResource('ebs/battery-trade-ins', 'BatteryTradeInController');
         Route::apiResource('ebs/cars', 'CarController');
         Route::apiResource('ebs/car-manufacturers', 'CarManufacturerController');
-        Route::apiResource('ebs/clients', 'ClientController')->middleware('permission:' . Acl::PERMISSION_USER_MANAGE);
+        Route::apiResource('ebs/transaction-records', 'TransactionRecordController');
+        Route::apiResource('ebs/payment-methods', 'PaymentMethodController');
 
         // Custom routes
         Route::get('ebs/cars/{car}/batteries', 'CarController@getCarBatteries');

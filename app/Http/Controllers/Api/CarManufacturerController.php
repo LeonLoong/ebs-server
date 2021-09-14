@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use Validator;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
-use App\Models\CarManufacturer;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CarManufacturerResource;
+use App\Models\CarManufacturer;
 
 class CarManufacturerController extends Controller
 {
@@ -22,11 +25,9 @@ class CarManufacturerController extends Controller
         $carManufacturerQuery = CarManufacturer::query();
         $limit = Arr::get($searchParams, 'limit', static::ITEM_PER_PAGE);
         $keyword = Arr::get($searchParams, 'keyword', '');
-
         if (!empty($keyword)) {
             $carManufacturerQuery->where('manufacturer', 'LIKE', '%' . $keyword . '%');
         }
-        
         return CarManufacturerResource::collection($carManufacturerQuery->paginate($limit));
     }
 
@@ -49,11 +50,31 @@ class CarManufacturerController extends Controller
     public function store(Request $request)
     {
         $params = $request->all();
-        $car = CarManufacturer::create([
-            'manufacturer' => $params['manufacturer'],
-        ]);
-
-        return new CarManufacturerResource($car);
+        $validator = Validator::make($request->all(), $this->getValidationRules(false));
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 403);
+        } else {
+            $manufacturer = $params['manufacturer'];
+            $foundManufacturer = CarManufacturer::where('manufacturer', $manufacturer)->first();
+            if ($foundManufacturer && $foundManufacturer->manufacturer === $manufacturer) {
+                return response()->json(['error' => $manufacturer.' already exists'], 403);
+            }
+            if ($request->hasFile('file')) {
+                $file = $params['file'];
+                $fileSize = $file->getSize();
+                $fileName = $manufacturer . '_' . 'image' . '.' . $file->getClientOriginalExtension();
+                $file->move(storage_path('app/public/images/car_manufacturers'), $fileName);
+            } else {
+                $fileName = NULL;
+                $fileSize = NULL;
+            }
+            $carManufacturer = CarManufacturer::create([
+                'manufacturer' => $manufacturer,
+                'image' => $fileName,
+                'image_size' => $fileSize,
+            ]);
+            return new CarManufacturerResource($carManufacturer);
+        }
     }
 
     /**
@@ -62,9 +83,9 @@ class CarManufacturerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(CarManufacturer $carManufacturer)
     {
-        //
+        return new CarManufacturerResource($carManufacturer);
     }
 
     /**
@@ -85,9 +106,39 @@ class CarManufacturerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, CarManufacturer $carManufacturer)
     {
-        //
+        $params = $request->all();
+        $currentUser = Auth::user();
+        if (!$currentUser->isAdmin()
+            && !$currentUser->hasPermission(\App\Laravue\Acl::PERMISSION_UPDATE_EBS)
+        ) {
+            return response()->json(['error' => 'Permission denied'], 403);
+        }
+        $validator = Validator::make($request->all(), $this->getValidationRules(false));
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 403);
+        } else {
+            $manufacturer = $params['manufacturer'];
+            $foundManufacturer = CarManufacturer::where('manufacturer', $manufacturer)->first();
+            if ($foundManufacturer && $foundManufacturer->id !== $carManufacturer->id) {
+                return response()->json(['error' => $manufacturer.' already exists'], 403);
+            }
+            if ($request->hasFile('file')) {
+                $file = $params['file'];
+                $fileSize = $file->getSize();
+                $fileName = $manufacturer . '_' . 'image' . '.' . $file->getClientOriginalExtension();
+                $file->move(storage_path('app/public/images/car_manufacturers'), $fileName);
+            } else {
+                $fileName = NULL;
+                $fileSize = NULL;
+            }
+            $carManufacturer->manufacturer = $manufacturer;
+            $carManufacturer->image = $fileName;
+            $carManufacturer->image_size = $fileSize;
+            $carManufacturer->save();
+            return new CarManufacturerResource($carManufacturer);
+        }
     }
 
     /**
@@ -96,8 +147,28 @@ class CarManufacturerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(CarManufacturer $carManufacturer)
     {
-        //
+        try {
+            $carManufacturer->delete();
+            $fileName = $carManufacturer->image;
+            File::delete('storage/images/car_manufacturers/'.$fileName);
+        } catch (\Exception $ex) {
+            response()->json(['error' => $ex->getMessage()], 403);
+        }
+        return response()->json(null, 204);
+    }
+
+    /**
+     * @param bool $isNew
+     * @return array
+     */
+    private function getValidationRules($isNew = true)
+    {
+        return [
+            'manufacturer' => 'required', 
+        ];
     }
 }
+
+// Accomplished

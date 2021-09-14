@@ -13,12 +13,17 @@
       </el-button>
     </div>
 
-    <el-table v-loading="loading" :data="carManufacturers" border fit highlight-current-row style="width: 100%">
-      <el-table-column align="center" label="Name">
+    <el-table v-loading="loading" :data="carManufacturerList" border fit highlight-current-row :default-sort="{prop: 'manufacturer', order: 'ascending'}" style="width: 100%">
+      <el-table-column align="center" :label="$t('ebs.manufacturer')" sortable prop="manufacturer">
         <template slot-scope="scope">
-          <router-link :to="'car-manufacturers/' + scope.row.id + '/batteries'" class="link-type">
+          <router-link :to="{name: 'Car', params: {keyword: scope.row.manufacturer}}" class="link-type">
             <span>{{ scope.row.manufacturer }}</span>
           </router-link>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" :label="$t('ebs.image')">
+        <template slot-scope="scope">
+          <img v-if="scope.row.image" :src="'../storage/images/car_manufacturers/' + scope.row.image" height="60">
         </template>
       </el-table-column>
       <el-table-column align="center" label="Actions" width="160">
@@ -36,7 +41,7 @@
             size="small"
             type="danger"
             icon="el-icon-delete"
-            @click="handleDelete(scope.row.id, scope.row.name);"
+            @click="handleDelete(scope.row.id, scope.row.manufacturer);"
           />
         </template>
       </el-table-column>
@@ -44,22 +49,66 @@
 
     <el-dialog :visible.sync="addDialogVisible" :title="'Add New Car Manufacturer'" :close-on-click-modal="false">
       <div v-loading="addDialogLoading">
-        <el-form ref="addCarManufacturerForm" :rules="rules" :model="new_car" label-position="left" label-width="150px" style="max-width: 500px;">
+        <el-form ref="addNewCarManufacturerForm" :rules="rules" :model="newCarManufacturer" label-position="left" label-width="150px" style="max-width: 500px;">
           <el-form-item :label="$t('ebs.manufacturer')" prop="manufacturer">
-            <el-input v-model="new_car.manufacturer" />
+            <el-input v-model="newCarManufacturer.manufacturer" placeholder="e.g.: Honda, Perodua, Proton..." />
           </el-form-item>
-          <el-form-item :label="$t('ebs.logo')" prop="logo">
-            <div class="editor-container">
-              <dropzone id="myVueDropzone" url="https://httpbin.org/post" @dropzone-removedFile="dropzoneR" @dropzone-success="dropzoneS" />
-            </div>
+          <el-form-item :label="$t('ebs.image')" prop="image">
+            <vue-dropzone
+              id="dropzone"
+              ref="addVueDropzone"
+              v-model="newCarManufacturer.image"
+              :options="addNewCarManufacturerImageDropzoneOptions"
+              :use-custom-slot="true"
+              @vdropzone-removed-file="fileRemoved"
+              @vdropzone-file-added="fileAdded"
+            >
+              <div class="dropzone-custom-content">
+                <h3 class="dropzone-custom-title">Drag and drop to upload content!</h3>
+                <div class="subtitle">...or click to select a file from your computer</div>
+              </div>
+            </vue-dropzone>
           </el-form-item>
         </el-form>
-
         <div slot="footer" class="dialog-footer">
           <el-button @click="addDialogVisible = false">
             {{ $t('table.cancel') }}
           </el-button>
-          <el-button type="primary" @click="createCarManufacturer()">
+          <el-button type="primary" @click="addCarManufacturer()">
+            {{ $t('table.confirm') }}
+          </el-button>
+        </div>
+      </div>
+    </el-dialog>
+
+    <el-dialog :visible.sync="editDialogVisible" :title="'Edit Car Manufacturer - ' + currentCarManufacturer.manufacturer" :close-on-click-modal="false" :destroy-on-close="true">
+      <div v-loading="editDialogLoading">
+        <el-form ref="editCurrentCarManufacturerForm" :rules="rules" :model="currentCarManufacturer" label-position="left" label-width="150px" style="max-width: 500px;">
+          <el-form-item :label="$t('ebs.manufacturer')">
+            <el-input v-model="currentCarManufacturer.manufacturer" />
+          </el-form-item>
+          <el-form-item :label="$t('ebs.image')" prop="image">
+            <vue-dropzone
+              id="dropzone"
+              ref="editVueDropzone"
+              v-model="currentCarManufacturer.image"
+              :options="editCurrentCarManufacturerImageDropzoneOptions"
+              :use-custom-slot="true"
+              @vdropzone-removed-file="fileRemoved"
+              @vdropzone-file-added="fileAdded"
+            >
+              <div class="dropzone-custom-content">
+                <h3 class="dropzone-custom-title">Drag and drop to upload content!</h3>
+                <div class="subtitle">...or click to select a file from your computer</div>
+              </div>
+            </vue-dropzone>
+          </el-form-item>
+        </el-form>
+        <div style="text-align:right;">
+          <el-button type="danger" @click="handleCancel()">
+            {{ $t('table.cancel') }}
+          </el-button>
+          <el-button type="primary" @click="editCarManufacturer()">
             {{ $t('table.confirm') }}
           </el-button>
         </div>
@@ -72,38 +121,70 @@
 
 <script>
 import Pagination from '@/components/Pagination';
-import Dropzone from '@/components/Dropzone';
 import permission from '@/directive/permission';
 import waves from '@/directive/waves';
-import { getCarManufacturers, storeCarManufacturer } from '@/api/ebs';
+import { getCarManufacturers, storeCarManufacturer, updateCarManufacturer, destroyCarManufacturer } from '@/api/ebs';
+import vue2Dropzone from 'vue2-dropzone';
+import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 
 export default {
-  name: 'Project',
-  components: { Pagination, Dropzone },
+  name: 'CarManufacturer',
+  components: {
+    Pagination,
+    vueDropzone: vue2Dropzone,
+  },
   directives: { permission, waves },
 
   data() {
     return {
       query: {
         page: 1,
-        limit: 50,
+        limit: 15,
       },
       rules: {
         manufacturer: [{ required: true, message: 'Manufacturer is required', trigger: 'blur' }],
       },
-      new_car: {
+      currentCarManufacturer: {
         manufacturer: '',
+        image: '',
+      },
+      currentCarManufacturerID: 0,
+      currentCarManufacturerForm: new FormData(),
+      editCurrentCarManufacturerImageDropzoneOptions: {
+        url: '',
+        addRemoveLinks: true,
+        autoProcessQueue: false,
+        thumbnailWidth: 150,
+        maxFiles: 1,
+        maxFilesize: 0.5,
+        headers: {
+          'X-CSRF-TOKEN': document.head.querySelector('[name=csrf-token]').content,
+        },
+      },
+      newCarManufacturer: {
+        manufacturer: '',
+        image: '',
+      },
+      newCarManufacturerForm: new FormData(),
+      addNewCarManufacturerImageDropzoneOptions: {
+        url: '/api/ebs/car-manufacturers',
+        addRemoveLinks: true,
+        autoProcessQueue: false,
+        thumbnailWidth: 150,
+        maxFiles: 1,
+        maxFilesize: 2.0,
+        headers: {
+          'X-CSRF-TOKEN': document.head.querySelector('[name=csrf-token]').content,
+        },
       },
       downloading: false,
       addDialogVisible: false,
       addDialogLoading: false,
+      editDialogVisible: false,
+      editDialogLoading: false,
       loading: true,
-      carManufacturers: [],
+      carManufacturerList: [],
       total: 0,
-      dropzoneOptions: {
-        url: 'https://httpbin.org/post',
-        autoProcessQueue: false,
-      },
     };
   },
   created() {
@@ -117,8 +198,8 @@ export default {
           this.loading = true;
           const { limit, page } = this.query;
           const { data, meta } = response;
-          this.carManufacturers = data;
-          this.carManufacturers.forEach((element, index) => {
+          this.carManufacturerList = data;
+          this.carManufacturerList.forEach((element, index) => {
             element['index'] = (page - 1) * limit + index + 1;
           });
           this.total = meta.total;
@@ -135,25 +216,26 @@ export default {
       this.resetNewCarManufacturer();
       this.addDialogVisible = true;
       this.$nextTick(() => {
-        this.$refs['addCarManufacturerForm'].clearValidate();
+        this.$refs['addNewCarManufacturerForm'].clearValidate();
       });
+      for (var pair of this.newCarManufacturerForm.entries()) {
+        console.log(pair[0] + ', ' + pair[1]);
+      }
     },
 
-    createCarManufacturer() {
-      this.$refs['addCarManufacturerForm'].validate((valid) => {
+    addCarManufacturer() {
+      this.$refs['addNewCarManufacturerForm'].validate((valid) => {
         if (valid) {
+          this.newCarManufacturerForm.append('manufacturer', this.newCarManufacturer.manufacturer);
           this.addDialogLoading = true;
-          this.new_car.manufacturer = this.new_car.manufacturer;
-          console.log(this.new_car);
-
-          storeCarManufacturer(this.new_car)
+          storeCarManufacturer(this.newCarManufacturerForm)
             .then(response => {
               this.$message({
-                message: 'New car manufacturer ' + this.new_car.manufacturer + ' has been created successfully.',
+                message: 'New car manufacturer ' + this.newCarManufacturer.manufacturer + ' has been created successfully.',
                 type: 'success',
                 duration: 5 * 1000,
               });
-              this.resetNewCarManufacturer();
+              this.$refs.addVueDropzone.removeAllFiles();
               this.addDialogVisible = false;
               this.handleSearch();
             })
@@ -170,18 +252,12 @@ export default {
       });
     },
 
-    resetNewCarManufacturer() {
-      this.new_car = {
-        manufacturer: '',
-      };
-    },
-
     handleExport() {
       this.downloading = true;
       import('@/vendor/Export2Excel').then(excel => {
         const tHeader = ['id', 'manufacturer'];
         const filterVal = ['index', 'manufacturer'];
-        const data = this.formatJson(filterVal, this.carManufacturers);
+        const data = this.formatJson(filterVal, this.carManufacturerList);
         excel.export_json_to_excel({
           header: tHeader,
           data,
@@ -191,15 +267,111 @@ export default {
       });
     },
 
+    async handleEdit(carManufacturerID) {
+      this.resetCurrentCarManufacturer();
+      this.editDialogVisible = true;
+      this.editDialogLoading = true;
+      this.currentCarManufacturerID = carManufacturerID;
+      this.editCurrentCarManufacturerImageDropzoneOptions.url = '/api/ebs/car-manufacturers/' + this.carManufacturerID;
+      const carManufacturer = this.carManufacturerList.find(carManufacturer => carManufacturer.id === carManufacturerID);
+      this.currentCarManufacturer = {
+        manufacturer: carManufacturer.manufacturer,
+        image: carManufacturer.image,
+        imageSize: carManufacturer.image_size,
+      };
+      this.$nextTick(() => {
+        this.$refs['editCurrentCarManufacturerForm'].clearValidate();
+        var file = { size: this.currentCarManufacturer.imageSize, name: this.currentCarManufacturer.image, type: 'image/png' };
+        var url = '../storage/images/car_manufacturers/';
+        if (this.currentCarManufacturer.image) {
+          this.$refs.editVueDropzone.manuallyAddFile(file, url + this.currentCarManufacturer.image);
+        }
+      });
+      this.editDialogLoading = false;
+    },
+
+    handleCancel() {
+      this.$refs.editVueDropzone.removeAllFiles();
+      this.editDialogVisible = false;
+    },
+
+    editCarManufacturer() {
+      this.$refs['editCurrentCarManufacturerForm'].validate((valid) => {
+        if (valid) {
+          this.currentCarManufacturerForm.append('manufacturer', this.currentCarManufacturer.manufacturer);
+          this.currentCarManufacturerForm.append('image', this.currentCarManufacturer.image);
+          this.currentCarManufacturerForm.append('imageSize', this.currentCarManufacturer.imageSize);
+          /* Since HTML forms can't make PUT, PATCH, or DELETE requests,
+          you will need to add a hidden _method field to spoof these HTTP verbs. */
+          this.currentCarManufacturerForm.append('_method', 'PUT');
+          updateCarManufacturer(this.currentCarManufacturerID, this.currentCarManufacturerForm)
+            .then(response => {
+              this.$message({
+                message: 'Car manufacturer information has been updated successfully',
+                type: 'success',
+                duration: 5 * 1000,
+              });
+              this.$refs.editVueDropzone.removeAllFiles();
+              this.editDialogVisible = false;
+              this.handleSearch();
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        }
+      });
+    },
+
+    handleDelete(carManufacturerID, manufacturer) {
+      this.$confirm('This will permanently delete ' + manufacturer + '. Continue?', 'Warning', {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }).then(() => {
+        destroyCarManufacturer(carManufacturerID).then(response => {
+          this.$message({
+            type: 'success',
+            message: 'Delete completed',
+          });
+          this.handleSearch();
+        }).catch(error => {
+          console.log(error);
+        });
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: 'Delete canceled',
+        });
+      });
+    },
+
+    resetNewCarManufacturer() {
+      this.newCarManufacturer = {
+        manufacturer: '',
+        image: '',
+      };
+      this.newCarManufacturerForm = new FormData();
+    },
+
+    resetCurrentCarManufacturer() {
+      this.currentCarManufacturer = {
+        manufacturer: '',
+        image: '',
+      };
+      this.currentCarManufacturerForm = new FormData();
+    },
+
     formatJson(filterVal, jsonData) {
       return jsonData.map(v => filterVal.map(j => v[j]));
     },
 
-    dropzoneS(file) {
-      this.$message({ message: 'Upload success', type: 'success' });
+    fileAdded(file) {
+      console.log(file.name + ' added');
+      this.newCarManufacturerForm.append('file', file);
+      this.currentCarManufacturerForm.append('file', file);
     },
-    dropzoneR(file) {
-      this.$message({ message: 'Delete success', type: 'success' });
+    fileRemoved(file) {
+      console.log(file.name + ' deleted');
     },
   },
 };
@@ -216,3 +388,5 @@ export default {
     margin-left: 150px;
   }
 </style>
+
+<!-- Accomplished -->

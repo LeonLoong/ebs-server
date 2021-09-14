@@ -18,7 +18,13 @@ class BatteryResource extends JsonResource
      */
     public function toArray($request)
     {
-        $batterySeries = BatterySeries::where('id', '=', $this->battery_series_id)->first();
+        $batteryManufacturer = BatteryManufacturer::where('id', '=', $this->manufacturer_id)->first();
+        if ($batteryManufacturer === null) {
+            $batteryManufacturer = null;
+         } else {
+            $batteryManufacturer = $batteryManufacturer->manufacturer;
+         };
+        $batterySeries = BatterySeries::where('id', '=', $this->series_id)->first();
         if ($batterySeries === null) {
             $batterySeries = null;
          } else {
@@ -26,20 +32,31 @@ class BatteryResource extends JsonResource
          };
         return [
             'id' => $this->id,
-            'manufacturer' => BatteryManufacturer::findOrFail($this->battery_manufacturer_id)->manufacturer,
+            'manufacturer' => $batteryManufacturer,
+            'manufacturer_id' => $this->manufacturer_id,
             'series' => $batterySeries,
-            'type_bm' => BatteryType::findOrFail($this->battery_type_id)->type_bm,
-            'type_en' => BatteryType::findOrFail($this->battery_type_id)->type_en,
-            'type_zh' => BatteryType::findOrFail($this->battery_type_id)->type_zh,
-            'trade_in' => BatteryTradeIn::findOrFail($this->battery_trade_in_id)->price,
+            'series_id' => $this->series_id,
+            'type' => BatteryType::findOrFail($this->type_id)->type,
+            'type_id' => $this->type_id,
+            'trade_in' => BatteryTradeIn::findOrFail($this->trade_in_id)->price,
+            'trade_in_id' => $this->trade_in_id,
             'model' => $this->model,
             'model_reference' => $this->model_reference,
             'price' => $this->price,
             'warranty' => $this->warranty,
             'stock' => $this->stock,
+            'volt' => $this->volt,
+            'ah' => $this->ah,
+            'cca' => $this->cca,
+            'rc' => $this->rc,
+            'length' => $this->length,
+            'width' => $this->width,
+            'height' => $this->height,
             'image' => $this->image,
             'description' => $this->description,
             'specifications' => $this->specifications,
+            'image' => $this->image,
+            'image_size' => $this->image_size,
         ];
     }
 }

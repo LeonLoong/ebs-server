@@ -20,6 +20,7 @@ const ebsRoutes = {
         title: 'batteries',
         icon: 'list',
         permissions: ['create ebs', 'read ebs', 'update ebs', 'delete ebs'],
+        noCache: true,
       },
     },
     {
@@ -40,6 +41,7 @@ const ebsRoutes = {
         title: 'cars',
         icon: 'list',
         permissions: ['create ebs', 'read ebs', 'update ebs', 'delete ebs'],
+        noCache: true,
       },
     },
     {
@@ -66,11 +68,11 @@ const ebsRoutes = {
       },
     },
     {
-      path: '/clients',
-      component: () => import('@/views/ebs/Client'),
-      name: 'EBS Client',
+      path: '/transaction-records',
+      component: () => import('@/views/ebs/TransactionRecord'),
+      name: 'Transaction Record',
       meta: {
-        title: 'clients',
+        title: 'transactionRecords',
         icon: 'list',
         permissions: ['create ebs', 'read ebs', 'update ebs', 'delete ebs'],
       },

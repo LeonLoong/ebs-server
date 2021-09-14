@@ -139,8 +139,8 @@ class UserController extends BaseController
 
             $user->name = $request->get('name');
             $user->email = $email;
-            $user->save();
-            return new UserResource($user);
+            // $user->save();
+            // return new UserResource($user);
         }
     }
 

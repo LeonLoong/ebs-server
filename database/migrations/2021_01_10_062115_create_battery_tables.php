@@ -15,66 +15,73 @@ class CreateBatteryTables extends Migration
     {
         Schema::create('batteries', function (Blueprint $table) {
             $table->id();
-            $table->unsignedTinyInteger('battery_manufacturer_id');
-            $table->unsignedTinyInteger('battery_series_id');
-            $table->unsignedTinyInteger('battery_type_id');
-            $table->unsignedTinyInteger('battery_trade_in_id');
-            $table->string('model', 25);
-            $table->string('model_reference', 25);
+            $table->unsignedTinyInteger('manufacturer_id');
+            $table->unsignedTinyInteger('model_id');
+            $table->unsignedTinyInteger('series_id')->nullable();
+            $table->unsignedTinyInteger('type_id');
+            $table->unsignedTinyInteger('trade_in_id');
             $table->decimal('price', 5, 0);
             $table->tinyInteger('warranty');
             $table->tinyInteger('stock')->default(1);
-            $table->string('image', 150);
-            $table->longText('description');
-            $table->json('specifications'); 
+            $table->smallInteger('volt')->default(12);
+            $table->smallInteger('ah');
+            $table->smallInteger('cca');
+            $table->smallInteger('rc');
+            $table->smallInteger('length');
+            $table->smallInteger('width');
+            $table->smallInteger('height');
+            $table->string('image', 50)->nullable();
+            $table->mediumInteger('image_size')->nullable();
+            $table->longText('description')->nullable();
+            $table->json('specifications')->nullable(); 
             $table->timestamps();
-            $table->unique(['battery_manufacturer_id', 'model']);
+            $table->unique(['manufacturer_id', 'model_id']);
         });
 
         Schema::create('battery_manufacturers', function (Blueprint $table) {
             $table->id();
-            $table->string('manufacturer', 25);
-            $table->string('logo', 150);
+            $table->string('manufacturer', 15)->unique();
+            $table->string('image', 50);
+            $table->mediumInteger('image_size')->nullable();
             $table->boolean('available')->default(1);
-            $table->longText('description_bm');
-            $table->longText('description_en');
-            $table->longText('description_zh');
+            $table->string('description_bm', 1000);
+            $table->string('description_en', 1000);
         });
 
+        Schema::create('battery_models', function (Blueprint $table) {
+            $table->id();
+            $table->string('model', 15)->unique();
+            $table->string('model_reference', 15)->nullable();
+        });
+        
         Schema::create('battery_specifications', function (Blueprint $table) {
             $table->id();
-            $table->string('spec', 50);
+            $table->string('spec', 30)->unique();
             $table->longText('description')->nullable();
         });
 
         Schema::create('battery_trade_ins', function (Blueprint $table) {
             $table->id();
-            $table->decimal('price', 5, 0);
+            $table->decimal('price', 5, 0)->unique();
         });
 
         Schema::create('battery_series', function (Blueprint $table) {
             $table->id();
-            $table->unsignedTinyInteger('battery_manufacturer_id');
-            $table->string('series', 25);
+            $table->unsignedTinyInteger('manufacturer_id');
+            $table->string('series', 30)->unique();
             $table->longText('description_bm');
             $table->longText('description_en');
-            $table->longText('description_zh');
         });
 
         Schema::create('battery_types', function (Blueprint $table) {
             $table->id();
-            $table->string('type_bm', 50);
-            $table->string('type_en', 50);
-            $table->string('type_zh', 50);
+            $table->string('type', 10)->unique();
             $table->json('pros_bm'); 
             $table->json('pros_en');   
-            $table->json('pros_zh');   
             $table->json('cons_bm');   
             $table->json('cons_en');   
-            $table->json('cons_zh');
             $table->longText('description_bm');
             $table->longText('description_en');
-            $table->longText('description_zh');
         });
     }
 
@@ -87,6 +94,7 @@ class CreateBatteryTables extends Migration
     {
         Schema::dropIfExists('batteries');
         Schema::dropIfExists('battery_manufacturers');
+        Schema::dropIfExists('battery_models');
         Schema::dropIfExists('battery_specifications');
         Schema::dropIfExists('battery_trade_ins');
         Schema::dropIfExists('battery_series');

@@ -15,20 +15,26 @@ class CreateCarTables extends Migration
     {
         Schema::create('cars', function (Blueprint $table) {
             $table->id();
-            $table->unsignedTinyInteger('car_manufacturer_id');
-            $table->string('model', 100);
+            $table->unsignedTinyInteger('manufacturer_id');
+            $table->string('model', 15);
+            $table->string('description', 100)->nullable();
+            $table->string('image', 50)->nullable();
+            $table->mediumInteger('image_size')->nullable();
+            $table->unique(['manufacturer_id', 'model', 'description']);
         });
 
         Schema::create('car_manufacturers', function (Blueprint $table) {
             $table->id();
-            $table->string('manufacturer', 25);
-            $table->string('logo', 150);
+            $table->string('manufacturer', 15)->unique();
+            $table->string('image', 50)->nullable();
+            $table->mediumInteger('image_size')->nullable();
         });
 
         Schema::create('car_batteries', function (Blueprint $table) {
             $table->id();
             $table->unsignedTinyInteger('car_id');
             $table->unsignedTinyInteger('battery_id');
+            $table->boolean('upgrade')->default(0);
         });
     }
 

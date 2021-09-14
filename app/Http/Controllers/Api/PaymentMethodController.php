@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\api;
 
-use App\Models\Client;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
+use App\Models\PaymentMethod;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ClientResource;
+use App\Http\Resources\PaymentMethodResource;
 
-class ClientController extends Controller
+class PaymentMethodController extends Controller
 {
-    const ITEM_PER_PAGE = 15;
+    const ITEM_PER_PAGE = 50;
     /**
      * Display a listing of the resource.
      *
@@ -19,15 +19,18 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $searchParams = $request->all();
-        $clientQuery = Client::query();
+        $carQuery = PaymentMethod::query();
         $limit = Arr::get($searchParams, 'limit', static::ITEM_PER_PAGE);
         $keyword = Arr::get($searchParams, 'keyword', '');
 
         if (!empty($keyword)) {
-            $clientQuery->where('name', 'LIKE', '%' . $keyword . '%');
+            $carQuery = PaymentMethod::whereHas('car_manufacturers', function($query) use ($keyword) {
+                $query->where('manufacturer', 'LIKE', '%' . $keyword . '%');
+            })
+            ->orWhere('model', 'LIKE', '%' . $keyword . '%');
         }
         
-        return ClientResource::collection($clientQuery->paginate($limit));
+        return PaymentMethodResource::collection($carQuery->paginate($limit));
     }
 
     /**

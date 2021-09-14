@@ -16,11 +16,53 @@ export function storeBattery(resource) {
   });
 }
 
+/* Since HTML forms can't make PUT, PATCH, or DELETE requests,
+ you will need to add a hidden _method field to spoof these HTTP verbs. */
+export function updateBattery(batteryID, resource) {
+  return request({
+    url: '/ebs/batteries/' + batteryID,
+    method: 'post',
+    data: resource,
+  });
+}
+
+export function destroyBattery(batteryID) {
+  return request({
+    url: '/ebs/batteries/' + batteryID,
+    method: 'delete',
+  });
+}
+
 export function getBatteryManufacturers(query) {
   return request({
     url: '/ebs/battery-manufacturers/',
     method: 'get',
     params: query,
+  });
+}
+
+export function storeBatteryManufacturer(resource) {
+  return request({
+    url: '/ebs/battery-manufacturers/',
+    method: 'post',
+    data: resource,
+  });
+}
+
+/* Since HTML forms can't make PUT, PATCH, or DELETE requests,
+ you will need to add a hidden _method field to spoof these HTTP verbs. */
+export function updateBatteryManufacturer(batteryManufacturerID, resource) {
+  return request({
+    url: '/ebs/battery-manufacturers/' + batteryManufacturerID,
+    method: 'post',
+    data: resource,
+  });
+}
+
+export function destroyBatteryManufacturer(batteryManufacturerID) {
+  return request({
+    url: '/ebs/battery-manufacturers/' + batteryManufacturerID,
+    method: 'delete',
   });
 }
 
@@ -56,6 +98,13 @@ export function getCars(query) {
   });
 }
 
+export function getCar(carID) {
+  return request({
+    url: '/ebs/cars/' + carID,
+    method: 'get',
+  });
+}
+
 export function storeCar(resource) {
   return request({
     url: '/ebs/cars/',
@@ -64,10 +113,12 @@ export function storeCar(resource) {
   });
 }
 
+/* Since HTML forms can't make PUT, PATCH, or DELETE requests,
+ you will need to add a hidden _method field to spoof these HTTP verbs. */
 export function updateCar(carID, resource) {
   return request({
     url: '/ebs/cars/' + carID,
-    method: 'put',
+    method: 'post',
     data: resource,
   });
 }
@@ -95,6 +146,23 @@ export function storeCarManufacturer(resource) {
   });
 }
 
+/* Since HTML forms can't make PUT, PATCH, or DELETE requests,
+ you will need to add a hidden _method field to spoof these HTTP verbs. */
+export function updateCarManufacturer(carManufacturerID, resource) {
+  return request({
+    url: '/ebs/car-manufacturers/' + carManufacturerID,
+    method: 'post',
+    data: resource,
+  });
+}
+
+export function destroyCarManufacturer(carManufacturerID) {
+  return request({
+    url: '/ebs/car-manufacturers/' + carManufacturerID,
+    method: 'delete',
+  });
+}
+
 export function getCarBatteries(query, carID) {
   return request({
     url: '/ebs/cars/' + carID + '/batteries/',
@@ -103,10 +171,44 @@ export function getCarBatteries(query, carID) {
   });
 }
 
-export function getClients(query) {
+export function getTransactionRecords(query) {
   return request({
-    url: '/ebs/clients/',
+    url: '/ebs/transaction-records/',
     method: 'get',
     params: query,
   });
 }
+
+export function storeTransactionRecord(resource) {
+  return request({
+    url: '/ebs/transaction-records/',
+    method: 'post',
+    data: resource,
+  });
+}
+
+/* Since HTML forms can't make PUT, PATCH, or DELETE requests,
+ you will need to add a hidden _method field to spoof these HTTP verbs. */
+export function updateTransactionRecord(transactionRecordID, resource) {
+  return request({
+    url: '/ebs/transaction-records/' + transactionRecordID,
+    method: 'post',
+    data: resource,
+  });
+}
+
+export function destroyTransactionRecord(transactionRecordID) {
+  return request({
+    url: '/ebs/transaction-records/' + transactionRecordID,
+    method: 'delete',
+  });
+}
+
+export function getPaymentMethods(query) {
+  return request({
+    url: '/ebs/payment-methods/',
+    method: 'get',
+    params: query,
+  });
+}
+

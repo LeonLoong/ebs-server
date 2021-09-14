@@ -17,6 +17,10 @@ class BatteryManufacturerResource extends JsonResource
         return [
             'id' => $this->id,
             'manufacturer' => $this->manufacturer,
+            'description_bm' => $this->description_bm,
+            'description_en' => $this->description_en,
+            'image' => $this->image,
+            'image_size' => $this->image_size,
         ];
     }
 }
